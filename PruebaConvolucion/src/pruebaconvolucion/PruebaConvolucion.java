@@ -37,9 +37,7 @@ public class PruebaConvolucion {
                         }
                     }
                     if(sumaConvolucion <= 0){
-                        sumaConvolucion = 2;
-                    }else{
-                        sumaConvolucion = 2;
+                        sumaConvolucion = 1;
                     }
                     matrizDestino[i][j] = matrizDestino[i][j]/sumaConvolucion; 
                 }
