@@ -25,7 +25,7 @@ public class PruebaConvolucion {
                     matrizDestino[i][j] = 0;
 
                 } else {
-                   
+                    int sumaConvolucion = 0;
                     for (int k = 0; k < matrizConvolucion.length; k++) {
                         
                         for (int l = 0; l < matrizConvolucion[k].length; l++) {
@@ -33,11 +33,15 @@ public class PruebaConvolucion {
                             int origen = matrizOrigen[(i +k) - 1][(j +l)- 1];
                             int convolucion = matrizConvolucion[k][l];
                             matrizDestino[i][j] +=  origen * convolucion;
-                             
-
+                            sumaConvolucion += convolucion;
                         }
-                        
                     }
+                    if(sumaConvolucion <= 0){
+                        sumaConvolucion = 2;
+                    }else{
+                        sumaConvolucion = 2;
+                    }
+                    matrizDestino[i][j] = matrizDestino[i][j]/sumaConvolucion; 
                 }
 
             }
