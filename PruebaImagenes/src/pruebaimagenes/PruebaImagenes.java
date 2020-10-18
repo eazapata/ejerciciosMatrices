@@ -27,6 +27,9 @@ public class PruebaImagenes {
         MarcoImagen miMarco = new MarcoImagen();
         
         miMarco.setVisible(true);
+        
+        miMarco.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
 
     }
 

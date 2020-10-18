@@ -19,6 +19,7 @@ public class MarcoImagen extends javax.swing.JFrame {
         
         setTitle("Marco con Imagen");
         
+        setSize(500,300);
         setBounds(750,300,300,200);
         
         LaminaConImagen milamina = new LaminaConImagen();
