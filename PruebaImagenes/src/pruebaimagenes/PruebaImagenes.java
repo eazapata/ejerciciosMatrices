@@ -30,6 +30,7 @@ public class PruebaImagenes {
         
         miMarco.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
+        
 
     }
 

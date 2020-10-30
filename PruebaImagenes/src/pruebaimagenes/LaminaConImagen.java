@@ -9,15 +9,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.*;
-import javax.swing.ImageIcon;
-import static sun.security.krb5.Confounder.*;
 
 /**
  *
@@ -25,7 +21,13 @@ import static sun.security.krb5.Confounder.*;
  */
 public class LaminaConImagen extends javax.swing.JPanel {
 
-    private int profundidad;
+    private int[][] convolucion = {
+        {-1, -1, -1},
+        {0, 0, 0},
+        {1, 1, 1}
+    };
+
+    private static int profundidad = 3;
 
     public int getProfundidad() {
         return profundidad;
@@ -35,14 +37,20 @@ public class LaminaConImagen extends javax.swing.JPanel {
         this.profundidad = profundidad;
     }
 
+    public int[][] getConvolucion() {
+        return convolucion;
+    }
+
+    public void setConvolucion(int[][] convolucion) {
+        this.convolucion = convolucion;
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         File miImagen = new File("src/image.jpg");
 
         try {
-
-            this.setProfundidad(this.getProfundidad() + 3);
 
             BufferedImage imagen = ImageIO.read(miImagen);
             g.drawImage(imagen, 0, 0, null);
@@ -52,12 +60,12 @@ public class LaminaConImagen extends javax.swing.JPanel {
 
             byte[] data = imageInBytes.getData();
 
-            cambiarGrises(data, imagen, g);
-            /*aumentarBrilloRojo(data, imagen, g);
-            aumentarBrilloAzul(data, imagen, g);
-            aumentarBrilloVerde(data, imagen, g);
-            aumentarBrilloGeneral(data, imagen, g);*/
-
+            //cambiarGrises(data, imagen, g);
+            // aumentarBrilloRojo(data, imagen, g);
+            //aumentarBrilloAzul(data, imagen, g);
+            //aumentarBrilloVerde(data, imagen, g);
+            //aumentarBrilloGeneral(data, imagen, g);
+            recorrerImagen(data, imagen, g);
             System.out.println("");
 
         } catch (IOException ex) {
@@ -66,38 +74,26 @@ public class LaminaConImagen extends javax.swing.JPanel {
 
     }
 
-    public static void cambiarGrises(byte[] data, BufferedImage imagen, Graphics g) {
+    public void cambiarGrises(byte[] data, BufferedImage imagen, Graphics g) {
 
-        
-        int valor = 0;
-        
-        for (int i = 0; i < (imagen.getHeight()) * 3; i++) {
+        for (int i = 0; i < (imagen.getHeight()); i++) {
 
-            for (int j = 0; j < imagen.getWidth() / 3 ; j++) {
+            for (int j = 0; j < imagen.getWidth(); j++) {
+                int valor = 0;
 
-                for (int k = 0; k < 3; k++) {
-                    
-                    
-                    int posicionVectorDestino = (imagen.getWidth() * i) + (3 * j) + k;
-                    int posicionVectorOrigen = posicionVectorDestino;
-                    if (k == 1) {
-                        posicionVectorDestino -= 1;
-                    } else if (k == 2) {
-                        posicionVectorDestino -= 2;
-                    }
-                    valor += Byte.toUnsignedInt(data[posicionVectorOrigen]);
-                   
+                for (int k = 0; k < this.getProfundidad(); k++) {
 
-                    if (k == 2) {
-                        valor /= 3;
-                        data[posicionVectorDestino] = (byte) valor;
-                        data[posicionVectorDestino + 1] = (byte) valor;
-                        data[posicionVectorDestino + 2] = (byte) valor;
-                    }
+                    int destino = (i * imagen.getWidth() * this.getProfundidad()) + (j * this.getProfundidad()) + k;
 
-                    //data[poscionVector] += 
+                    valor += Byte.toUnsignedInt(data[destino]);
                 }
-                valor = 0;
+
+                valor /= 3;
+
+                for (int k = 0; k < this.getProfundidad(); k++) {
+                    data[(i * imagen.getWidth() * this.getProfundidad()) + (j * this.getProfundidad()) + k] = (byte) valor;
+                }
+
                 /* for (int i = 0; i < data.length; i += 3) {
 
             int c1 = Byte.toUnsignedInt(data[i]);
@@ -227,6 +223,7 @@ public class LaminaConImagen extends javax.swing.JPanel {
             data[i + 2] = (byte) c3;
         }
         g.drawImage(imagen, imagen.getWidth(), imagen.getHeight(), null);
+
         for (int i = 0; i < data.length; i++) {
             data[i] = imagenOriginal[i];
         }
@@ -235,9 +232,78 @@ public class LaminaConImagen extends javax.swing.JPanel {
 
     public static int aumentarBrilloColor(int color) {
 
-        color += 255;//(color *50)/100;
+        color += 255;
 
         return color;
+    }
+
+    public void recorrerImagen(byte[] data, BufferedImage imagen, Graphics g) {
+
+        for (int i = 0; i < imagen.getHeight() - 1; i++) {
+
+            for (int j = 0; j < imagen.getWidth() - 1; j++) {
+
+                if (i == 0 || j == 0 || i == this.getHeight() - 1 || j == this.getWidth() - 1) {
+
+                } else {
+                    convolucionImagen(data, imagen, g, i, j);
+                }
+            }
+        }
+
+        g.drawImage(imagen, imagen.getWidth(), imagen.getHeight(), null);
+
+    }
+
+    public void convolucionImagen(byte[] data, BufferedImage imagen, Graphics g, int i, int j) {
+        int valor = 0;
+        int posicionDestino = 0;
+        int posicionOrigen = 0;
+
+        for (int k = 0; k < this.getProfundidad(); k++) {
+            valor = 0;
+            for (int l = 0; l < this.getConvolucion().length; l++) {
+                for (int m = 0; m < this.getConvolucion()[l].length; m++) {
+                    
+                    posicionDestino = (i * imagen.getWidth() * this.getProfundidad()) + (j * this.getProfundidad()) + k;
+                    
+                    posicionOrigen = (((i - 1) + l) * (imagen.getWidth() * this.getProfundidad())) + (((j - 1) + m) * this.getProfundidad()) + k;
+                    
+                    int valor1 = Byte.toUnsignedInt(data[posicionOrigen]);
+                    valor += valor1 * this.getConvolucion()[l][m];
+                    //data[posicionDestino] += (Byte.toUnsignedInt(data[posicionOrigen])) * this.getConvolucion()[l][m];
+                }
+            }
+            valor /= calcularTotalPesos();
+
+            if (valor < 0) {
+
+                data[posicionDestino] = (byte) 0;
+
+            } else if (valor> 255) {
+                
+                data[posicionDestino] = (byte) 255;
+            
+            } else {
+
+                data[posicionDestino] = (byte)valor;
+            }
+        }
+    }
+
+    public int calcularTotalPesos() {
+
+        int total = 0;
+
+        for (int i = 0; i < getConvolucion().length; i++) {
+            for (int j = 0; j < getConvolucion()[i].length; j++) {
+                total += getConvolucion()[i][j];
+            }
+        }
+        if (total == 0) {
+            total = 1;
+        }
+        return total;
     }
 
     /**
