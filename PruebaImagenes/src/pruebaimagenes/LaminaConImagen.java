@@ -260,13 +260,13 @@ public class LaminaConImagen extends javax.swing.JPanel {
         int posicionDestino = 0;
         int posicionOrigen = 0;
 
-        for (int k = 0; k < this.getProfundidad(); k++) {
-            valor = 0;
-            for (int l = 0; l < this.getConvolucion().length; l++) {
-                for (int m = 0; m < this.getConvolucion()[l].length; m++) {
-                    
-                    posicionDestino = (i * imagen.getWidth() * this.getProfundidad()) + (j * this.getProfundidad()) + k;
-                    
+
+                    for (int k = 0; k < this.getProfundidad(); k++) {
+                        valor = 0;
+                        for (int l = 0; l < this.getConvolucion().length; l++) {
+                            for (int m = 0; m < this.getConvolucion()[l].length; m++) {
+
+                                posicionDestino = (i * imagen.getWidth() * this.getProfundidad()) + (j * this.getProfundidad()) + k;
                     posicionOrigen = (((i - 1) + l) * (imagen.getWidth() * this.getProfundidad())) + (((j - 1) + m) * this.getProfundidad()) + k;
                     
                     int valor1 = Byte.toUnsignedInt(data[posicionOrigen]);
@@ -315,19 +315,30 @@ public class LaminaConImagen extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jButton1 = new javax.swing.JButton();
+
+        jButton1.setText("jButton1");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(132, 132, 132)
+                .addComponent(jButton1)
+                .addContainerGap(189, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(139, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(136, 136, 136))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     // End of variables declaration//GEN-END:variables
 }
