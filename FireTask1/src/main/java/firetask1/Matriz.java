@@ -1,12 +1,20 @@
 package firetask1;
 
 public class Matriz {
-    private int[][] matrizConvolucion = {
+    private int[][] matrizUnfocus = {
             {1, 1, 1},
             {1, 1, 1},
             {1, 1, 1}
     };
-    public int[][] getMatrizConvolucion() {
-        return matrizConvolucion;
+    private int[][] matrizSharp={
+            {0,-1,0},
+            {-1,5,-1},
+            {0,-1,0}
+    };
+    public int[][] getMatrizUnfocus() {
+        return matrizUnfocus;
+    }
+    public int[][] getMatrizSharp() {
+        return matrizSharp;
     }
 }

@@ -19,8 +19,6 @@ public class FireTask extends JFrame {
 
         addControlPanel(c);
         addViewer(c);
-
-
     }
 
     public static void main(String[] args) {
@@ -44,13 +42,12 @@ public class FireTask extends JFrame {
     }
 
     private void addViewer(GridBagConstraints c){
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.fill = GridBagConstraints.BOTH;
         c.gridy = 0;
         c.gridx= 1;
         c.weighty = 1;
         c.weightx = 1.9;
-        c.gridwidth = 2;
+        c.gridwidth = 1;
         this.add(viewer, c);
     }
 }
