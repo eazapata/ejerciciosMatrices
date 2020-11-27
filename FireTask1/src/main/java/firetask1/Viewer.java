@@ -28,7 +28,6 @@ public class Viewer extends Canvas {
             g.drawImage(getImg(1), this.getWidth() / 2, 0, getWidth() / 2, getHeight() / 2, null);
             g.drawImage(getImg(2), 0, getHeight() / 2, getWidth() / 2, getHeight() / 2, null);
             g.drawImage(getImg(3), this.getWidth() / 2, this.getHeight() / 2, getWidth() / 2, getHeight() / 2, null);
-            //System.gc();
         }
     }
 }

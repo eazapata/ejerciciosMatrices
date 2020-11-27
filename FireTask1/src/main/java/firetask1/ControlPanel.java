@@ -358,25 +358,70 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
             case "RESET BRILLO":
                 reiniciarBotones();
                 aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
-                this.viewer.repaint();
+
                 break;
             case "Convertir a Gris":
-                if (greyButton.isSelected()) {
-                    this.imgSelected.setGrey(true);
-                } else {
-                    this.imgSelected.setGrey(false);
+                if(recuadro.isSelected()){
+                    if(greyButton.isSelected()){
+                        imgSelected.setGrisInterior(true);
+                    }else{
+                        imgSelected.setGrisInterior(false);
+                    }
+                }else{
+                    if(greyButton.isSelected()){
+                        imgSelected.setGrisGeneral(true);
+                    }else{
+                        imgSelected.setGrisGeneral(false);
+                    }
+
                 }
+              /*  if (greyButton.isSelected()) {
+                    if(recuadro.isSelected()){
+                        this.imgSelected.setGrisInterior(true);
+                    }else{
+                        this.imgSelected.setGrisGeneral(true);
+                    }
+                }else{
+                    if(recuadro.isSelected()){
+                        this.imgSelected.setGrisInterior(false);
+                    }else{
+                        this.imgSelected.setGrisGeneral(false);
+                    }
+                }*/
                 aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
-                this.viewer.repaint();
+
                 break;
             case "TODO":
                 imgSelected.setCuadrado(false);
                 recuadro.setSelected(false);
+                todo.setSelected(true);
+                zoneSlider.setEnabled(false);
+                sliderBrillo.setValue(imgSelected.getAllChannels());
+                redSlider.setValue(imgSelected.getRedChannel());
+                blueSlider.setValue((imgSelected.getBlueChannel()));
+                greenSlider.setValue((imgSelected.getGreenChannel()));
+                filterSlider.setValue(imgSelected.getFilter());
+                greyButton.setSelected(imgSelected.getGrisGeneral());
+                aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
+                this.viewer.repaint();
                 break;
             case "RECUADRO":
-                imgSelected.setCuadrado(true);
+                recuadro.setSelected(true);
                 todo.setSelected(false);
+                imgSelected.setCuadrado(true);
+                zoneSlider.setEnabled(true);
+                sliderBrillo.setValue(imgSelected.getGeneralInterior());
+                redSlider.setValue(imgSelected.getRojoInterior());
+                blueSlider.setValue((imgSelected.getAzulInterior()));
+                greenSlider.setValue((imgSelected.getVerdeInterior()));
+                filterSlider.setValue(imgSelected.getFiltroInterior());
+                greyButton.setSelected(imgSelected.isGrisInterior());
+
+                aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
+                this.viewer.repaint();
                 break;
+            default:
+                System.out.println("opcion no valida");
         }
 
     }
@@ -390,30 +435,53 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         int valorAzul = blueSlider.getValue();
         int valorFiltro = filterSlider.getValue();
 
-
         if (changeEvent.getSource() == sliderBrillo) {
+            if (recuadro.isSelected()) {
+                imgSelected.setGeneralInterior(valorGeneral);
+            } else {
+                imgSelected.setAllChannels(valorGeneral);
+            }
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
-            imgSelected.setAllChannels(valorGeneral);
+
         }
         if (changeEvent.getSource() == redSlider) {
+            if (recuadro.isSelected()) {
+                imgSelected.setRojoInterior(valorRojo);
+            } else {
+                imgSelected.setRedChannel(valorRojo);
+            }
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
         }
         if (changeEvent.getSource() == greenSlider) {
+            if (recuadro.isSelected()) {
+                imgSelected.setVerdeInterior(valorVerde);
+            } else {
+                imgSelected.setGreenChannel(valorVerde);
+            }
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
-            imgSelected.setGreenChannel(valorVerde);
+
         }
         if (changeEvent.getSource() == blueSlider) {
+            if (recuadro.isSelected()) {
+                imgSelected.setAzulInterior(valorAzul);
+            } else {
+                imgSelected.setBlueChannel(valorAzul);
+            }
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
-            imgSelected.setBlueChannel(valorAzul);
+
         }
         if (changeEvent.getSource() == filterSlider) {
+            if (recuadro.isSelected()) {
+                imgSelected.setFiltroInterior(valorFiltro);
+            } else {
+                imgSelected.setFilter(valorFiltro);
+            }
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
-            imgSelected.setFilter(valorFiltro);
+
         }
         if (changeEvent.getSource() == zoneSlider) {
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
         }
-        this.viewer.repaint();
 
     }
 
@@ -446,8 +514,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
                 todo.setSelected(true);
                 Graphics g = this.viewer.getGraphics();
                 this.viewer.paint(g);
-                original = ((DataBufferByte) this.viewer.getImg(0).getRaster().getDataBuffer()).getData();
-                copy = new byte[original.length];
+                crearCopia(viewer.getImg(0));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -482,13 +549,49 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         this.infoTable.setVisible(true);
     }
 
+    private void aplicarFiltros(int valorGeneral, int valorRojo, int valorVerde, int valorAzul, int valorFiltro) {
+        int blueChannel = 0;
+        int greenChannel = 1;
+        int redChannel = 2;
+        int tamaño = zoneSlider.getValue();
+        int rojoInterior = imgSelected.getRojoInterior();
+        int verdeInterior = imgSelected.getVerdeInterior();
+        int azulInterior = imgSelected.getAzulInterior();
+        imgSelected.dimensionarCuadrado(tamaño);
+
+        if (copy == null) {
+            copy = new byte[original.length];
+            for (int i = 0; i < this.original.length; i++) {
+                copy[i] = this.original[i];
+            }
+        }
+
+        this.imgSelected.cambiarBrilloGeneral(copy, valorGeneral);
+
+        this.imgSelected.cambiarBrillo(copy, valorRojo, rojoInterior, redChannel);
+        this.imgSelected.cambiarBrillo(copy, valorVerde, verdeInterior, greenChannel);
+        this.imgSelected.cambiarBrillo(copy, valorAzul, azulInterior, blueChannel);
+        this.imgSelected.aplicarFiltro(this.imgSelected.getFilter(), this.imgSelected.getMyImg(), tamaño);
+        //this.imgSelected.aplicarFiltro(this.imgSelected.getFiltroInterior(), this.imgSelected.getMyImg(), tamaño);
+        if (this.imgSelected.getGrisGeneral() || this.imgSelected.isGrisInterior()) {
+            this.imgSelected.cambiarGrises(this.imgSelected.getMyImg(), tamaño);
+        }
+        this.viewer.repaint();
+
+    }
+
+    private void crearCopia(BufferedImage imagen) {
+        original = ((DataBufferByte) imagen.getRaster().getDataBuffer()).getData();
+
+    }
+
     private void recogerInformacionImagen1() {
         this.redSlider.setValue(this.myImg1.getRedChannel());
         this.greenSlider.setValue(this.myImg1.getGreenChannel());
         this.blueSlider.setValue(this.myImg1.getBlueChannel());
         this.sliderBrillo.setValue(this.myImg1.getAllChannels());
         filterSlider.setValue(myImg1.getFilter());
-        greyButton.setSelected(myImg1.getGrey());
+        greyButton.setSelected(myImg1.getGrisGeneral());
     }
 
     private void recogerInformacionImagen2() {
@@ -497,7 +600,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         blueSlider.setValue(myImg2.getBlueChannel());
         sliderBrillo.setValue(myImg2.getAllChannels());
         filterSlider.setValue(myImg2.getFilter());
-        greyButton.setSelected(myImg2.getGrey());
+        greyButton.setSelected(myImg2.getGrisGeneral());
     }
 
     private void recogerInformacionImagen3() {
@@ -506,7 +609,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         blueSlider.setValue(myImg3.getBlueChannel());
         sliderBrillo.setValue(myImg3.getAllChannels());
         filterSlider.setValue(myImg3.getFilter());
-        greyButton.setSelected(myImg3.getGrey());
+        greyButton.setSelected(myImg3.getGrisGeneral());
     }
 
     private void reiniciarBotones() {
@@ -516,27 +619,5 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         greenSlider.setValue(0);
     }
 
-    private void aplicarFiltros(int valorGeneral, int valorRojo, int valorVerde, int valorAzul, int valorFiltro) {
-        int blueChannel = 0;
-        int greenChannel = 1;
-        int redChannel = 2;
-        int tamaño = zoneSlider.getValue();
 
-        //if(valorGeneral != this.imgSelected.getAllChannels()){
-        this.imgSelected.cambiarBrilloGeneral(original, copy, valorGeneral);
-        // }
-        //if (valorRojo != this.imgSelected.getRedChannel()) {
-
-        this.imgSelected.cambiarBrillo(copy, valorRojo, redChannel, tamaño);
-        imgSelected.setRedChannel(valorRojo);
-        //}
-        this.imgSelected.cambiarBrillo(copy, valorVerde, greenChannel, tamaño);
-        this.imgSelected.cambiarBrillo(copy, valorAzul, blueChannel, tamaño);
-        this.imgSelected.aplicarFiltro(valorFiltro, this.imgSelected.getMyImg(), tamaño);
-        System.gc();
-
-        if (this.imgSelected.getGrey()) {
-            this.imgSelected.grayScale(this.imgSelected.getMyImg());
-        }
-    }
 }
