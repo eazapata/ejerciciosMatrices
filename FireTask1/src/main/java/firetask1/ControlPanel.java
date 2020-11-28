@@ -25,6 +25,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
     private JTable infoTable;
     private JToggleButton picSelected1, picSelected2, picSelected3, greyButton, todo, recuadro;
     private JSlider sliderBrillo, redSlider, greenSlider, blueSlider, filterSlider, zoneSlider;
+    private MyImage myImg;
     private MyImage myImg1;
     private MyImage myImg2;
     private MyImage myImg3;
@@ -333,8 +334,12 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         String event = actionEvent.getActionCommand();
         switch (event) {
             case "Cargar Imagen":
+                reiniciarBotones();
                 añadirImagen();
+                this.viewer.paint(this.viewer.getGraphics());
                 añadirContenidoTabla();
+
+                crearCopia(myImg.getMyImg());
                 break;
             case "1":
                 imgSelected = myImg1;
@@ -356,38 +361,28 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
 
                 break;
             case "RESET BRILLO":
-                reiniciarBotones();
+                sliderBrillo.setValue(0);
+                redSlider.setValue(0);
+                blueSlider.setValue(0);
+                greenSlider.setValue(0);
                 aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
 
                 break;
             case "Convertir a Gris":
-                if(recuadro.isSelected()){
-                    if(greyButton.isSelected()){
+                if (recuadro.isSelected()) {
+                    if (greyButton.isSelected()) {
                         imgSelected.setGrisInterior(true);
-                    }else{
+                    } else {
                         imgSelected.setGrisInterior(false);
                     }
-                }else{
-                    if(greyButton.isSelected()){
+                } else {
+                    if (greyButton.isSelected()) {
                         imgSelected.setGrisGeneral(true);
-                    }else{
+                    } else {
                         imgSelected.setGrisGeneral(false);
                     }
 
                 }
-              /*  if (greyButton.isSelected()) {
-                    if(recuadro.isSelected()){
-                        this.imgSelected.setGrisInterior(true);
-                    }else{
-                        this.imgSelected.setGrisGeneral(true);
-                    }
-                }else{
-                    if(recuadro.isSelected()){
-                        this.imgSelected.setGrisInterior(false);
-                    }else{
-                        this.imgSelected.setGrisGeneral(false);
-                    }
-                }*/
                 aplicarFiltros(sliderBrillo.getValue(), redSlider.getValue(), greenSlider.getValue(), blueSlider.getValue(), filterSlider.getValue());
 
                 break;
@@ -395,7 +390,6 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
                 imgSelected.setCuadrado(false);
                 recuadro.setSelected(false);
                 todo.setSelected(true);
-                zoneSlider.setEnabled(false);
                 sliderBrillo.setValue(imgSelected.getAllChannels());
                 redSlider.setValue(imgSelected.getRedChannel());
                 blueSlider.setValue((imgSelected.getBlueChannel()));
@@ -409,7 +403,6 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
                 recuadro.setSelected(true);
                 todo.setSelected(false);
                 imgSelected.setCuadrado(true);
-                zoneSlider.setEnabled(true);
                 sliderBrillo.setValue(imgSelected.getGeneralInterior());
                 redSlider.setValue(imgSelected.getRojoInterior());
                 blueSlider.setValue((imgSelected.getAzulInterior()));
@@ -481,6 +474,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         }
         if (changeEvent.getSource() == zoneSlider) {
             aplicarFiltros(valorGeneral, valorRojo, valorVerde, valorAzul, valorFiltro);
+            this.imgSelected.setTamañoCuadrado(zoneSlider.getValue());
         }
 
     }
@@ -498,23 +492,17 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
                 BufferedImage img1 = ImageIO.read(file);
                 BufferedImage img2 = ImageIO.read(file);
                 BufferedImage img3 = ImageIO.read(file);
-                MyImage myImg = new MyImage(img, false);
+                this.myImg = new MyImage(img, false);
                 this.myImg1 = new MyImage(img1, false);
                 this.myImg2 = new MyImage(img2, false);
                 this.myImg3 = new MyImage(img3, false);
-                this.viewer.setImgs(myImg.getMyImg(), 0);
-                this.viewer.setImgs(myImg1.getMyImg(), 1);
-                this.viewer.setImgs(myImg2.getMyImg(), 2);
-                this.viewer.setImgs(myImg3.getMyImg(), 3);
+                this.viewer.setImgs(this.myImg.getMyImg(), 0);
+                this.viewer.setImgs(this.myImg1.getMyImg(), 1);
+                this.viewer.setImgs(this.myImg2.getMyImg(), 2);
+                this.viewer.setImgs(this.myImg3.getMyImg(), 3);
+                this.imgSelected = this.myImg1;
 
-                this.infoTable.setVisible(true);
-                this.picSelected1.setSelected(true);
-                this.imgSelected = myImg1;
-                reiniciarBotones();
-                todo.setSelected(true);
-                Graphics g = this.viewer.getGraphics();
-                this.viewer.paint(g);
-                crearCopia(viewer.getImg(0));
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -547,6 +535,7 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         }
         this.infoTable.getTableHeader().setVisible(true);
         this.infoTable.setVisible(true);
+        this.repaint();
     }
 
     private void aplicarFiltros(int valorGeneral, int valorRojo, int valorVerde, int valorAzul, int valorFiltro) {
@@ -559,20 +548,14 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
         int azulInterior = imgSelected.getAzulInterior();
         imgSelected.dimensionarCuadrado(tamaño);
 
-        if (copy == null) {
-            copy = new byte[original.length];
-            for (int i = 0; i < this.original.length; i++) {
-                copy[i] = this.original[i];
-            }
-        }
 
         this.imgSelected.cambiarBrilloGeneral(copy, valorGeneral);
 
         this.imgSelected.cambiarBrillo(copy, valorRojo, rojoInterior, redChannel);
         this.imgSelected.cambiarBrillo(copy, valorVerde, verdeInterior, greenChannel);
         this.imgSelected.cambiarBrillo(copy, valorAzul, azulInterior, blueChannel);
+
         this.imgSelected.aplicarFiltro(this.imgSelected.getFilter(), this.imgSelected.getMyImg(), tamaño);
-        //this.imgSelected.aplicarFiltro(this.imgSelected.getFiltroInterior(), this.imgSelected.getMyImg(), tamaño);
         if (this.imgSelected.getGrisGeneral() || this.imgSelected.isGrisInterior()) {
             this.imgSelected.cambiarGrises(this.imgSelected.getMyImg(), tamaño);
         }
@@ -582,41 +565,89 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
 
     private void crearCopia(BufferedImage imagen) {
         original = ((DataBufferByte) imagen.getRaster().getDataBuffer()).getData();
+        copy = new byte[original.length];
+        for (int i = 0; i < this.original.length; i++) {
+            copy[i] = this.original[i];
+        }
 
     }
 
     private void recogerInformacionImagen1() {
-        this.redSlider.setValue(this.myImg1.getRedChannel());
-        this.greenSlider.setValue(this.myImg1.getGreenChannel());
-        this.blueSlider.setValue(this.myImg1.getBlueChannel());
-        this.sliderBrillo.setValue(this.myImg1.getAllChannels());
-        filterSlider.setValue(myImg1.getFilter());
-        greyButton.setSelected(myImg1.getGrisGeneral());
+        if (todo.isSelected()) {
+            this.redSlider.setValue(this.myImg1.getRedChannel());
+            this.greenSlider.setValue(this.myImg1.getGreenChannel());
+            this.blueSlider.setValue(this.myImg1.getBlueChannel());
+            this.sliderBrillo.setValue(this.myImg1.getAllChannels());
+            filterSlider.setValue(myImg1.getFilter());
+            greyButton.setSelected(myImg1.getGrisGeneral());
+            zoneSlider.setValue(myImg1.getTamañoCuadrado());
+        } else if (recuadro.isSelected()) {
+            this.redSlider.setValue(this.myImg1.getRojoInterior());
+            this.greenSlider.setValue(this.myImg1.getVerdeInterior());
+            this.blueSlider.setValue(this.myImg1.getAzulInterior());
+            this.sliderBrillo.setValue(this.myImg1.getGeneralInterior());
+            filterSlider.setValue(myImg1.getFiltroInterior());
+            greyButton.setSelected(myImg1.isGrisInterior());
+            zoneSlider.setValue(myImg1.getTamañoCuadrado());
+
+        }
     }
 
     private void recogerInformacionImagen2() {
-        redSlider.setValue(myImg2.getRedChannel());
-        greenSlider.setValue(myImg2.getGreenChannel());
-        blueSlider.setValue(myImg2.getBlueChannel());
-        sliderBrillo.setValue(myImg2.getAllChannels());
-        filterSlider.setValue(myImg2.getFilter());
-        greyButton.setSelected(myImg2.getGrisGeneral());
+        if (todo.isSelected()) {
+            redSlider.setValue(myImg2.getRedChannel());
+            greenSlider.setValue(myImg2.getGreenChannel());
+            blueSlider.setValue(myImg2.getBlueChannel());
+            sliderBrillo.setValue(myImg2.getAllChannels());
+            filterSlider.setValue(myImg2.getFilter());
+            greyButton.setSelected(myImg2.getGrisGeneral());
+            zoneSlider.setValue(myImg2.getTamañoCuadrado());
+
+        } else if (recuadro.isSelected()) {
+            redSlider.setValue(myImg2.getRojoInterior());
+            greenSlider.setValue(myImg2.getVerdeInterior());
+            blueSlider.setValue(myImg2.getAzulInterior());
+            sliderBrillo.setValue(myImg2.getGeneralInterior());
+            filterSlider.setValue(myImg2.getFiltroInterior());
+            greyButton.setSelected(myImg2.isGrisInterior());
+            zoneSlider.setValue(myImg2.getTamañoCuadrado());
+        }
     }
 
     private void recogerInformacionImagen3() {
-        redSlider.setValue(myImg3.getRedChannel());
-        greenSlider.setValue(myImg3.getGreenChannel());
-        blueSlider.setValue(myImg3.getBlueChannel());
-        sliderBrillo.setValue(myImg3.getAllChannels());
-        filterSlider.setValue(myImg3.getFilter());
-        greyButton.setSelected(myImg3.getGrisGeneral());
+        if (todo.isSelected()) {
+            redSlider.setValue(myImg3.getRedChannel());
+            greenSlider.setValue(myImg3.getGreenChannel());
+            blueSlider.setValue(myImg3.getBlueChannel());
+            sliderBrillo.setValue(myImg3.getAllChannels());
+            filterSlider.setValue(myImg3.getFilter());
+            greyButton.setSelected(myImg3.getGrisGeneral());
+            zoneSlider.setValue(myImg3.getTamañoCuadrado());
+        } else if (recuadro.isSelected()){
+            redSlider.setValue(myImg3.getRojoInterior());
+            greenSlider.setValue(myImg3.getVerdeInterior());
+            blueSlider.setValue(myImg3.getAzulInterior());
+            sliderBrillo.setValue(myImg3.getGeneralInterior());
+            filterSlider.setValue(myImg3.getFiltroInterior());
+            greyButton.setSelected(myImg3.isGrisInterior());
+            zoneSlider.setValue(myImg3.getTamañoCuadrado());
+        }
     }
 
     private void reiniciarBotones() {
+        todo.setSelected(true);
+        recuadro.setSelected(false);
         sliderBrillo.setValue(0);
         redSlider.setValue(0);
         blueSlider.setValue(0);
         greenSlider.setValue(0);
+        zoneSlider.setValue(0);
+        greyButton.setSelected(false);
+        filterSlider.setValue(0);
+        infoTable.setVisible(true);
+        picSelected1.setSelected(true);
+        picSelected2.setSelected(false);
+        picSelected3.setSelected(false);
     }
 
 

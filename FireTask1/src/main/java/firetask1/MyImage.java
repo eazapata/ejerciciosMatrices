@@ -14,8 +14,6 @@ public class MyImage {
     private boolean grisInterior;
     private boolean cuadrado = false;
     private boolean todo = true;
-    private int inicioCuadrado;
-    private int finCuadrado;
     private int inicioAncho;
     private int finAncho;
     private int inicioAlto;
@@ -33,7 +31,7 @@ public class MyImage {
     private int GeneralInterior;
     private int filter;
     private int filtroInterior;
-    private HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+    private int tamañoCuadrado;
 
     public MyImage(BufferedImage myImg, Boolean isGrey) {
         this.myImg = myImg;
@@ -42,9 +40,6 @@ public class MyImage {
         this.vectorCopia = new byte[this.vector.length];
     }
 
-    public byte[] getVectorCopia() {
-        return vectorCopia;
-    }
 
     public int getFiltroInterior() {
         return filtroInterior;
@@ -91,36 +86,8 @@ public class MyImage {
     }
 
 
-    public boolean isCuadrado() {
-        return cuadrado;
-    }
-
-    public boolean isTodo() {
-        return todo;
-    }
-
-    public void setTodo(boolean todo) {
-        this.todo = todo;
-    }
-
     public void setCuadrado(boolean cuadrado) {
         this.cuadrado = cuadrado;
-    }
-
-    public int getInicioCuadrado() {
-        return inicioCuadrado;
-    }
-
-    public void setInicioCuadrado(int inicioCuadrado) {
-        this.inicioCuadrado = inicioCuadrado;
-    }
-
-    public int getFinCuadrado() {
-        return finCuadrado;
-    }
-
-    public void setFinCuadrado(int finCuadrado) {
-        this.finCuadrado = finCuadrado;
     }
 
 
@@ -225,16 +192,24 @@ public class MyImage {
         this.filter = filter;
     }
 
+    public int getTamañoCuadrado() {
+        return tamañoCuadrado;
+    }
+
+    public void setTamañoCuadrado(int tamañoCuadrado) {
+        this.tamañoCuadrado = tamañoCuadrado;
+    }
 
     // Metodos para ajustar el brillo general y por canales
     public void cambiarBrilloGeneral(byte[] original, int brillo) {
+
         if (this.getMyImg().getColorModel().hasAlpha()) {
             setProfundidad(4);
         }
-
         for (int i = 0; i < this.getMyImg().getHeight(); i++) {
             for (int j = 0; j < this.getMyImg().getWidth(); j++) {
                 for (int k = 0; k < getProfundidad(); k++) {
+                    if(getProfundidad() == 4 & k == 0) k += 1;
                     int posicionVector = (i * this.myImg.getWidth() * getProfundidad()) + (j * getProfundidad()) + k;
                     //int posicionVector = comprobarPosicion(i, j, k, tamaño);
                     if (i > getInicioAlto() && i < getFinAlto()
@@ -249,9 +224,6 @@ public class MyImage {
                         value = comprobarValor(value);
                         this.getVector()[posicionVector] = (byte) value;
                     }
-
-                    // copy[posicionVector] = (byte) value;
-                    //comprobarCuadrado(i, j, original, this.getVector(), posicionVector, value);
                 }
             }
         }
@@ -259,10 +231,6 @@ public class MyImage {
 
     public void cambiarBrillo(byte[] copy, int brillo, int brilloInterior, int channel) {
 
-        if (this.myImg.getColorModel().hasAlpha()) {
-            setProfundidad(4);
-            channel += 1;
-        }
         byte[] copia = new byte[this.getVector().length];
         for (int i = 0; i < this.getVector().length; i++) {
             copia[i] = this.getVector()[i];
@@ -276,6 +244,10 @@ public class MyImage {
         } else {
             brillo = getRedChannel();
             brilloInterior = getRojoInterior();
+        }
+        if (this.myImg.getColorModel().hasAlpha()) {
+            setProfundidad(4);
+            channel += 1;
         }
         for (int i = 0; i < this.myImg.getHeight(); i++) {
             for (int j = 0; j < this.myImg.getWidth(); j++) {
@@ -302,6 +274,7 @@ public class MyImage {
         int posicionVector = 0;
         for (int i = 0; i < this.getMyImg().getHeight(); ++i) {
             for (int j = 0; j < this.getMyImg().getWidth(); ++j) {
+
                 if (i > getInicioAlto() & i < getFinAlto() & j > getInicioAncho() & j < getFinAncho()) {
                     if (isGrisInterior()) {
                         posicionVector = i * img.getWidth() * getProfundidad() + (j * getProfundidad());
@@ -321,6 +294,9 @@ public class MyImage {
         int valor1;
         int valor2;
         int valor3;
+        if (this.myImg.getColorModel().hasAlpha()) {
+            posicionVector += 1;
+        }
 
         valor1 = Byte.toUnsignedInt(data[posicionVector]);
         valor2 = Byte.toUnsignedInt(data[posicionVector + 1]);
@@ -335,31 +311,50 @@ public class MyImage {
     }
 
     // Metodos para aplicar el filtro
-    public void aplicarFiltro(int repeticiones, BufferedImage imageOrigen, int tamaño) {
+    public void aplicarFiltro(int repeticiones, BufferedImage imagenOrigen, int tamaño) {
 
         Matriz matriz = new Matriz();
-        byte[] vectorOrigen = ((DataBufferByte) imageOrigen.getRaster().getDataBuffer()).getData();
+        byte[] vectorOrigen = ((DataBufferByte) imagenOrigen.getRaster().getDataBuffer()).getData();
         byte[] copia = new byte[vectorOrigen.length];
         for (int i = 0; i < vectorOrigen.length; i++) {
-            copia[i] = this.getVector()[i];
+            copia[i] = vectorOrigen[i];
         }
-        if (repeticiones < 0) {
-            repeticiones = Math.abs(repeticiones);
-            for (int i = 0; i < repeticiones; i++) {
+
+        if (getFilter() < 0) {
+            int repeticionesExterior = Math.abs(getFilter());
+            for (int i = 0; i < repeticionesExterior; i++) {
+                aplicarConvolucion(tamaño, matriz.getMatrizSharp(), copia);
+                for (int j = 0; j < vectorOrigen.length; j++) {
+                    copia[j] = this.getVector()[j];
+                }
+            }
+        }
+        if (getFiltroInterior() < 0) {
+            int repeticionesInterior = Math.abs(getFiltroInterior());
+            for (int i = 0; i < repeticionesInterior; i++) {
                 aplicarConvolucionInterior(tamaño, matriz.getMatrizSharp(), copia);
                 for (int j = 0; j < vectorOrigen.length; j++) {
                     copia[j] = this.getVector()[j];
                 }
             }
-        } else {
-            for (int i = 0; i < repeticiones; i++) {
+
+        }
+        if (getFilter() > 0) {
+            for (int i = 0; i < getFilter(); i++) {
+                aplicarConvolucion(tamaño, matriz.getMatrizUnfocus(), copia);
+                for (int j = 0; j < vectorOrigen.length; j++) {
+                    copia[j] = this.getVector()[j];
+                }
+            }
+        }if (getFiltroInterior() > 0)
+            for (int i = 0; i < getFiltroInterior(); i++) {
                 aplicarConvolucionInterior(tamaño, matriz.getMatrizUnfocus(), copia);
                 for (int j = 0; j < vectorOrigen.length; j++) {
                     copia[j] = this.getVector()[j];
                 }
             }
-        }
     }
+
 
     private void aplicarConvolucionInterior(int tamaño, int[][] matrizConvolucion, byte[] aux) {
 
@@ -369,19 +364,50 @@ public class MyImage {
         for (int i = 1; i < this.getMyImg().getHeight() - 1; i++) {
             for (int j = 1; j < this.getMyImg().getWidth() - 1; j++) {
                 int destino;
-                    for (int k = 0; k < getProfundidad(); k++) {
-                        destino = (i * this.getMyImg().getWidth() * getProfundidad()) + (j * getProfundidad());
+                for (int k = 0; k < getProfundidad(); k++) {
+                    if (this.myImg.getColorModel().hasAlpha() & k == 0) {
+                        k += 1;
+                    }
+                    destino = (i * this.getMyImg().getWidth() * getProfundidad()) + (j * getProfundidad());
+                    if (i > getInicioAlto() & i < getFinAlto()
+                            & j > getInicioAncho() & j < getFinAncho()) {
+                        convolucion = calcularConvolucion(i, j, k, matrizConvolucion, aux);
+                        convolucion /= totalk;
+                        k = comprobarConvolucion(convolucion, matrizConvolucion, destino, k, aux);
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void aplicarConvolucion(int tamaño, int[][] matrizConvolucion, byte[] aux) {
+
+        int totalk = calcularK(matrizConvolucion);
+        int convolucion;
+
+        for (int i = 1; i < this.getMyImg().getHeight() - 1; i++) {
+            for (int j = 1; j < this.getMyImg().getWidth() - 1; j++) {
+                int destino;
+                destino = (i * this.getMyImg().getWidth() * getProfundidad()) + (j * getProfundidad());
+                for (int k = 0; k < getProfundidad(); k++) {
+                    if (this.myImg.getColorModel().hasAlpha() & k == 0) {
+                       k += 1;
+                    }
+                    if(i > getInicioAlto() && i < getFinAlto()
+                            && j > getInicioAncho() && j < getFinAncho()){
+                        this.getVector()[destino + k] = aux[destino + k];
+                    }else{
                         convolucion = calcularConvolucion(i, j, k, matrizConvolucion, aux);
                         convolucion /= totalk;
                         k = comprobarConvolucion(convolucion, matrizConvolucion, destino, k, aux);
 
                     }
+
                 }
             }
         }
-
-
-
+    }
 
 
     private int comprobarConvolucion(int convolucion, int[][] matrizConvolucion, int destino, int k, byte[] aux) {
