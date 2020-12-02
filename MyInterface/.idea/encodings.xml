@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/ControlPanel.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/KernelConvolution.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/MyImage.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/MyInterface.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/Viewer.java" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

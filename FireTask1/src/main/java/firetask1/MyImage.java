@@ -412,7 +412,6 @@ public class MyImage {
 
     private int comprobarConvolucion(int convolucion, int[][] matrizConvolucion, int destino, int k, byte[] aux) {
         if (matrizConvolucion[0][0] != 0) {
-            convolucion = comprobarValor(convolucion);
             this.getVector()[destino + k] = (byte) convolucion;
         } else {
             if (convolucion > 255 || convolucion < 0) {

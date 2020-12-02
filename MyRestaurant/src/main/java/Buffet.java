@@ -1,4 +1,5 @@
 public class Buffet {
 
-    private int totalHamburguesas;
+    private int totalActual;
+    private int totalRecogido;
 }

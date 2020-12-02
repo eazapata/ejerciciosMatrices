@@ -550,7 +550,6 @@ public class ControlPanel extends JPanel implements ActionListener, ChangeListen
 
 
         this.imgSelected.cambiarBrilloGeneral(copy, valorGeneral);
-
         this.imgSelected.cambiarBrillo(copy, valorRojo, rojoInterior, redChannel);
         this.imgSelected.cambiarBrillo(copy, valorVerde, verdeInterior, greenChannel);
         this.imgSelected.cambiarBrillo(copy, valorAzul, azulInterior, blueChannel);
